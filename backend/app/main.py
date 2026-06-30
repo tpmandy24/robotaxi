@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import Base, engine
 from app.routes.robotaxi_routes import router as robotaxi_router
@@ -13,6 +14,13 @@ app = FastAPI(
     openapi_tags=[
         {"name": "robotaxis", "description": "Manage the local Robotaxi fleet: register, list, update, and remove vehicles."},
     ],
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(robotaxi_router)
