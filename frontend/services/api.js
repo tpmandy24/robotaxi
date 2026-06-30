@@ -1,21 +1,33 @@
-const BASE_URL = "http://localhost:8000";
+const BASE_URL = "http://localhost:8000/api";
 
 async function handleResponse(response) {
   if (!response.ok) {
-    const detail = await response.json().catch(() => ({}));
-    throw new Error(detail.detail || `Request failed with status ${response.status}`);
+    let detail = `Request failed with status ${response.status}`;
+    try {
+      const body = await response.json();
+      if (body.detail) detail = body.detail;
+    } catch {
+      // response had no JSON body
+    }
+    throw new Error(detail);
   }
   if (response.status === 204) return null;
   return response.json();
 }
 
-export async function getRobotaxis(skip = 0, limit = 100) {
-  const response = await fetch(`${BASE_URL}/robotaxis/?skip=${skip}&limit=${limit}`);
-  return handleResponse(response);
+function buildQuery(params) {
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      query.set(key, value);
+    }
+  });
+  const queryString = query.toString();
+  return queryString ? `?${queryString}` : "";
 }
 
-export async function getRobotaxi(id) {
-  const response = await fetch(`${BASE_URL}/robotaxis/${id}`);
+export async function getRobotaxis(filters = {}) {
+  const response = await fetch(`${BASE_URL}/robotaxis/${buildQuery(filters)}`);
   return handleResponse(response);
 }
 
